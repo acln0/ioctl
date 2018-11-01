@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package ioctl
+// Package ioctl provides facilities to define ioctl numbers and perform
+// ioctls against file descriptors.
+package ioctl // import "acln.ro/ioctl"
 
 import (
 	"unsafe"
