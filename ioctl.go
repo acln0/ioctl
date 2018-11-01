@@ -52,12 +52,11 @@ type N struct {
 	Name string
 	Type uint16
 	Nr   uint16
-	Size uint16
 }
 
 // Number returns the associated ioctl number.
 func (n N) Number() uint32 {
-	return number(dirNone, n.Type, n.Nr, n.Size)
+	return number(dirNone, n.Type, n.Nr, 0)
 }
 
 // Exec executes n against fd.
