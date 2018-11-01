@@ -68,14 +68,14 @@ func (r R) marshal() uint32 {
 	return marshal(dirRead, r.Type, r.Nr, r.Size)
 }
 
-// SetInt executes r against fd with the integer argument val.
-func (r R) SetInt(fd int, val uintptr) error {
+// WriteInt executes r against fd with the integer argument val.
+func (r R) WriteInt(fd int, val uintptr) error {
 	_, err := ioctlInt(fd, r.marshal(), val)
 	return err
 }
 
-// SetPointer executes r against fd with the pointer argument ptr.
-func (r R) SetPointer(fd int, ptr unsafe.Pointer) error {
+// WritePointer executes r against fd with the pointer argument ptr.
+func (r R) WritePointer(fd int, ptr unsafe.Pointer) error {
 	_, err := ioctlPointer(fd, r.marshal(), ptr)
 	return err
 }
@@ -91,15 +91,15 @@ func (w W) marshal() uint32 {
 	return marshal(dirWrite, w.Type, w.Nr, w.Size)
 }
 
-// GetInt executes w against fd and returns the integer result.
-func (w W) GetInt(fd int) (int, error) {
+// ReadInt executes w against fd and returns the integer result.
+func (w W) ReadInt(fd int) (int, error) {
 	var res int
 	_, err := ioctlPointer(fd, w.marshal(), unsafe.Pointer(&res))
 	return res, err
 }
 
-// GetPointer executes w against fd and stores the result in ptr.
-func (w W) GetPointer(fd int, ptr unsafe.Pointer) error {
+// ReadPointer executes w against fd and stores the result in ptr.
+func (w W) ReadPointer(fd int, ptr unsafe.Pointer) error {
 	_, err := ioctlPointer(fd, w.marshal(), ptr)
 	return err
 }
@@ -115,7 +115,7 @@ func (wr WR) marshal() uint32 {
 	return marshal(dirWriteRead, wr.Type, wr.Nr, wr.Size)
 }
 
-// Exec executes wr against fd. ptr is the read / write argument.
+// Exec executes wr against fd. ptr is the input / output argument.
 func (wr WR) Exec(fd int, ptr unsafe.Pointer) error {
 	_, err := ioctlPointer(fd, wr.marshal(), ptr)
 	return err
