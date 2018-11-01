@@ -14,6 +14,11 @@
 
 // Package ioctl provides facilities to define ioctl numbers and perform
 // ioctls against file descriptors.
+//
+// The Name field on all ioctl types is optional. If a name is specified,
+// the name will be included in error messages returned by method calls.
+//
+// In case of errors, all method calls return errors of type Error.
 package ioctl // import "acln.ro/ioctl"
 
 import (
@@ -44,100 +49,125 @@ const (
 
 // N specifies an ioctl that does not exchange data with the kernel.
 type N struct {
+	Name string
 	Type uint16
 	Nr   uint16
 	Size uint16
 }
 
-func (n N) marshal() uint32 {
-	return marshal(dirNone, n.Type, n.Nr, n.Size)
+// Number returns the associated ioctl number.
+func (n N) Number() uint32 {
+	return number(dirNone, n.Type, n.Nr, n.Size)
 }
 
 // Exec executes n against fd.
 func (n N) Exec(fd int) (int, error) {
-	return ioctlInt(fd, n.marshal(), 0)
+	res, err := ioctlInt(fd, n.Number(), 0)
+	return res, wrapError(err, n.Name, n.Number())
 }
 
 // R specifies a read ioctl: userland is writing, and the kernel is reading.
 type R struct {
+	Name string
 	Type uint16
 	Nr   uint16
 	Size uint16
 }
 
-func (r R) marshal() uint32 {
-	return marshal(dirRead, r.Type, r.Nr, r.Size)
+// Number returns the associated ioctl number.
+func (r R) Number() uint32 {
+	return number(dirRead, r.Type, r.Nr, r.Size)
 }
 
 // WriteInt executes r against fd with the integer argument val.
 func (r R) WriteInt(fd int, val uintptr) error {
-	_, err := ioctlInt(fd, r.marshal(), val)
-	return err
+	_, err := ioctlInt(fd, r.Number(), val)
+	return wrapError(err, r.Name, r.Number())
 }
 
 // WritePointer executes r against fd with the pointer argument ptr.
 func (r R) WritePointer(fd int, ptr unsafe.Pointer) error {
-	_, err := ioctlPointer(fd, r.marshal(), ptr)
-	return err
+	_, err := ioctlPointer(fd, r.Number(), ptr)
+	return wrapError(err, r.Name, r.Number())
 }
 
 // W specifies a write ioctl: userland is reading, and the kernel is writing.
 type W struct {
+	Name string
 	Type uint16
 	Nr   uint16
 	Size uint16
 }
 
-func (w W) marshal() uint32 {
-	return marshal(dirWrite, w.Type, w.Nr, w.Size)
+// Number returns the associated ioctl number.
+func (w W) Number() uint32 {
+	return number(dirWrite, w.Type, w.Nr, w.Size)
 }
 
 // ReadInt executes w against fd and returns the integer result.
 func (w W) ReadInt(fd int) (int, error) {
 	var res int
-	_, err := ioctlPointer(fd, w.marshal(), unsafe.Pointer(&res))
-	return res, err
+	_, err := ioctlPointer(fd, w.Number(), unsafe.Pointer(&res))
+	return res, wrapError(err, w.Name, w.Number())
 }
 
 // ReadPointer executes w against fd and stores the result in ptr.
 func (w W) ReadPointer(fd int, ptr unsafe.Pointer) error {
-	_, err := ioctlPointer(fd, w.marshal(), ptr)
-	return err
+	_, err := ioctlPointer(fd, w.Number(), ptr)
+	return wrapError(err, w.Name, w.Number())
 }
 
 // WR specifies a bidirectional ioctl.
 type WR struct {
+	Name string
 	Type uint16
 	Nr   uint16
 	Size uint16
 }
 
-func (wr WR) marshal() uint32 {
-	return marshal(dirWriteRead, wr.Type, wr.Nr, wr.Size)
+// Number returns the associated ioctl number.
+func (wr WR) Number() uint32 {
+	return number(dirWriteRead, wr.Type, wr.Nr, wr.Size)
 }
 
 // Exec executes wr against fd. ptr is the input / output argument.
 func (wr WR) Exec(fd int, ptr unsafe.Pointer) error {
-	_, err := ioctlPointer(fd, wr.marshal(), ptr)
-	return err
+	_, err := ioctlPointer(fd, wr.Number(), ptr)
+	return wrapError(err, wr.Name, wr.Number())
+}
+
+// WrapError wraps err in an Error. If err is nil, wrapError returns nil.
+func wrapError(err error, name string, number uint32) error {
+	if err == nil {
+		return nil
+	}
+	return &Error{Name: name, Number: number, Err: err}
 }
 
 // Error records an error from an ioctl(2) system call.
 type Error struct {
 	// Name is the name of the ioctl, e.g. "KVM_CREATE_VM".
+	//
+	// This field may be empty, in which case it is not included in the
+	// error message.
 	Name string
+
+	// Number is the 32 bit ioctl number. It is rendered in hexadecimal
+	// in the error message.
+	Number uint32
 
 	// Err is the underlying error, of type syscall.Errno.
 	Err error
 }
 
 func (e *Error) Error() string {
-	return fmt.Sprintf("%s: %v", e.Name, e.Err)
+	if e.Name != "" {
+		return fmt.Sprintf("ioctl: %s (%#08x): %v", e.Name, e.Number, e.Err)
+	}
+	return fmt.Sprintf("ioctl: %#08x: %v", e.Number, e.Err)
 }
 
-var _ error = &Error{}
-
-func marshal(dir, typ, nr, size uint16) uint32 {
+func number(dir, typ, nr, size uint16) uint32 {
 	d := uint32(dir) << dirShift
 	t := uint32(typ) << typeShift
 	n := uint32(nr) << nrShift
