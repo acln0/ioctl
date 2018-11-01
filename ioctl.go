@@ -17,6 +17,7 @@
 package ioctl // import "acln.ro/ioctl"
 
 import (
+	"fmt"
 	"unsafe"
 
 	"golang.org/x/sys/unix"
@@ -120,6 +121,21 @@ func (wr WR) Exec(fd int, ptr unsafe.Pointer) error {
 	_, err := ioctlPointer(fd, wr.marshal(), ptr)
 	return err
 }
+
+// Error records an error from an ioctl(2) system call.
+type Error struct {
+	// Name is the name of the ioctl, e.g. "KVM_CREATE_VM".
+	Name string
+
+	// Err is the underlying error, of type syscall.Errno.
+	Err error
+}
+
+func (e *Error) Error() string {
+	return fmt.Sprintf("%s: %v", e.Name, e.Err)
+}
+
+var _ error = &Error{}
 
 func marshal(dir, typ, nr, size uint16) uint32 {
 	d := uint32(dir) << dirShift
