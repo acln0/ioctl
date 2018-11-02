@@ -34,13 +34,6 @@ const (
 )
 
 const (
-	nrMask   = (1 << nrBits) - 1
-	typeMask = (1 << typeBits) - 1
-	sizeMask = (1 << sizeBits) - 1
-	dirMask  = (1 << dirBits) - 1
-)
-
-const (
 	nrShift   = 0
 	typeShift = nrShift + nrBits
 	sizeShift = typeShift + typeBits
@@ -59,9 +52,14 @@ func (n N) Number() uint32 {
 	return number(dirNone, n.Type, n.Nr, 0)
 }
 
-// Exec executes n against fd.
+// Exec executes n against fd, with no argument.
 func (n N) Exec(fd int) (int, error) {
-	res, err := ioctlInt(fd, n.Number(), 0)
+	return n.ExecInt(fd, 0)
+}
+
+// ExecInt executes n against fd with the integer argument val.
+func (n N) ExecInt(fd int, val uintptr) (int, error) {
+	res, err := ioctlInt(fd, n.Number(), val)
 	return res, wrapError(err, n.Name, n.Number())
 }
 
@@ -78,14 +76,8 @@ func (r R) Number() uint32 {
 	return number(dirRead, r.Type, r.Nr, r.Size)
 }
 
-// WriteInt executes r against fd with the integer argument val.
-func (r R) WriteInt(fd int, val uintptr) error {
-	_, err := ioctlInt(fd, r.Number(), val)
-	return wrapError(err, r.Name, r.Number())
-}
-
-// WritePointer executes r against fd with the pointer argument ptr.
-func (r R) WritePointer(fd int, ptr unsafe.Pointer) error {
+// Write executes r against fd with the pointer argument ptr.
+func (r R) Write(fd int, ptr unsafe.Pointer) error {
 	_, err := ioctlPointer(fd, r.Number(), ptr)
 	return wrapError(err, r.Name, r.Number())
 }
@@ -103,17 +95,18 @@ func (w W) Number() uint32 {
 	return number(dirWrite, w.Type, w.Nr, w.Size)
 }
 
-// ReadInt executes w against fd and returns the integer result.
-func (w W) ReadInt(fd int) (int, error) {
-	var res int
-	_, err := ioctlPointer(fd, w.Number(), unsafe.Pointer(&res))
-	return res, wrapError(err, w.Name, w.Number())
-}
-
-// ReadPointer executes w against fd and stores the result in ptr.
-func (w W) ReadPointer(fd int, ptr unsafe.Pointer) error {
+// Read executes w against fd and stores the result in ptr.
+func (w W) Read(fd int, ptr unsafe.Pointer) error {
 	_, err := ioctlPointer(fd, w.Number(), ptr)
 	return wrapError(err, w.Name, w.Number())
+}
+
+// ReadInt is a convenience wrapper around Read, which executes w against
+// fd and returns the integer result.
+func (w W) ReadInt(fd int) (uintptr, error) {
+	var res uintptr
+	err := w.Read(fd, unsafe.Pointer(&res))
+	return res, err
 }
 
 // WR specifies a bidirectional ioctl.

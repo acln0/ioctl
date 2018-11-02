@@ -16,10 +16,7 @@
 
 package ioctl // import "acln.ro/ioctl"
 
-const (
-	sizeBits = 14
-	dirBits  = 2
-)
+const sizeBits = 14
 
 const (
 	dirNone = iota
