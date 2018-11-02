@@ -128,7 +128,7 @@ func (wr WR) Exec(fd int, ptr unsafe.Pointer) error {
 	return wrapError(err, wr.Name, wr.Number())
 }
 
-// WrapError wraps err in an Error. If err is nil, wrapError returns nil.
+// wrapError wraps err in an Error. If err is nil, wrapError returns nil.
 func wrapError(err error, name string, number uint32) error {
 	if err == nil {
 		return nil
