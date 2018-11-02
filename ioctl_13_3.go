@@ -12,18 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// +build amd64 386
+// +build ppc ppc64 ppc64le mips mipsle mips64 mips64le mips64p32 mips64p32le sparc sparc64
 
-package ioctl
+package ioctl // import "acln.ro/ioctl"
 
 const (
-	sizeBits = 14
-	dirBits  = 2
+	sizeBits = 13
+	dirBits  = 3
 )
 
 const (
-	dirNone = iota
-	dirWrite
+	dirNone = 1 << iota
 	dirRead
-	dirWriteRead
+	dirWrite
 )

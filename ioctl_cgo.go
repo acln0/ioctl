@@ -16,8 +16,8 @@
 
 package ioctl // import "acln.ro/ioctl"
 
-// #include <linux/ioctl.h>
 // #include <linux/types.h>
+// #include <linux/ioctl.h>
 //
 // unsigned long io(__u16 type, __u16 nr) {
 //         return _IOC(_IOC_NONE, type, nr, 0);
@@ -36,8 +36,11 @@ package ioctl // import "acln.ro/ioctl"
 // }
 import "C"
 
-// Above, bypass the more common _IO, _IOR, _IOW, and _IOWR macros, because
-// they use sizeof their final argument. Pass the size directly.
+// These functions are used for testing, and live in this file because
+// importing "C" in test files is not allowed. Bypass the more common
+// _IO, _IOR, _IOW, and _IOWR macros, because they use sizeof their final
+// argument, which is difficult to use from Go. Instead, pass the actual
+// size to _IOC directly.
 
 func cgoIO(typ, nr uint16) uint32 {
 	return uint32(C.io(C.__u16(typ), C.__u16(nr)))

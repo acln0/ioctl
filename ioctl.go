@@ -126,7 +126,7 @@ type WR struct {
 
 // Number returns the associated ioctl number.
 func (wr WR) Number() uint32 {
-	return number(dirWriteRead, wr.Type, wr.Nr, wr.Size)
+	return number(dirRead|dirWrite, wr.Type, wr.Nr, wr.Size)
 }
 
 // Exec executes wr against fd. ptr is the input / output argument.

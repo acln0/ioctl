@@ -26,11 +26,7 @@ func TestN(t *testing.T) {
 		{Type: 0xae, Nr: 0x01},
 	}
 	for _, n := range ns {
-		goNumber := n.Number()
-		cgoNumber := cgoIO(n.Type, n.Nr)
-		if goNumber != cgoNumber {
-			t.Errorf("Go number %#08x != cgo number %#08x", goNumber, cgoNumber)
-		}
+		cmp(t, n.Number(), cgoIO(n.Type, n.Nr))
 	}
 }
 
@@ -41,11 +37,7 @@ func TestR(t *testing.T) {
 		{Type: 0xae, Nr: 0x02, Size: 128},
 	}
 	for _, r := range rs {
-		goNumber := r.Number()
-		cgoNumber := cgoIOR(r.Type, r.Nr, r.Size)
-		if goNumber != cgoNumber {
-			t.Errorf("Go number %#08x != cgo number %#08x", goNumber, cgoNumber)
-		}
+		cmp(t, r.Number(), cgoIOR(r.Type, r.Nr, r.Size))
 	}
 }
 
@@ -56,11 +48,7 @@ func TestW(t *testing.T) {
 		{Type: 0xae, Nr: 0x02, Size: 128},
 	}
 	for _, w := range ws {
-		goNumber := w.Number()
-		cgoNumber := cgoIOW(w.Type, w.Nr, w.Size)
-		if goNumber != cgoNumber {
-			t.Errorf("Go number %#08x != cgo number %#08x", goNumber, cgoNumber)
-		}
+		cmp(t, w.Number(), cgoIOW(w.Type, w.Nr, w.Size))
 	}
 }
 
@@ -71,10 +59,13 @@ func TestWR(t *testing.T) {
 		{Type: 0xae, Nr: 0x02, Size: 128},
 	}
 	for _, wr := range wrs {
-		goNumber := wr.Number()
-		cgoNumber := cgoIOWR(wr.Type, wr.Nr, wr.Size)
-		if goNumber != cgoNumber {
-			t.Errorf("Go number %#08x != cgo number %#08x", goNumber, cgoNumber)
-		}
+		cmp(t, wr.Number(), cgoIOWR(wr.Type, wr.Nr, wr.Size))
+	}
+}
+
+func cmp(t *testing.T, got, want uint32) {
+	t.Helper()
+	if got != want {
+		t.Errorf("Go number %#08x != cgo number %#08x", got, want)
 	}
 }
