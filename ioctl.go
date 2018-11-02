@@ -40,14 +40,15 @@ const (
 	dirShift  = sizeShift + sizeBits
 )
 
-// N specifies an ioctl that does not exchange data with the kernel.
+// N specifies an ioctl that does not exchange data with the kernel through
+// a pointer. An N can nevertheless have an integer argument.
 type N struct {
 	Name string
 	Type uint16
 	Nr   uint16
 }
 
-// Number returns the associated ioctl number.
+// Number returns the ioctl number associated with n.
 func (n N) Number() uint32 {
 	return number(dirNone, n.Type, n.Nr, 0)
 }
@@ -63,7 +64,7 @@ func (n N) ExecInt(fd int, val uintptr) (int, error) {
 	return res, wrapError(err, n.Name, n.Number())
 }
 
-// R specifies a read ioctl: userland is writing, and the kernel is reading.
+// R specifies a read ioctl: the kernel is reading, userland is writing.
 type R struct {
 	Name string
 	Type uint16
@@ -71,18 +72,20 @@ type R struct {
 	Size uint16
 }
 
-// Number returns the associated ioctl number.
+// Number returns the ioctl number associated with r.
 func (r R) Number() uint32 {
 	return number(dirRead, r.Type, r.Nr, r.Size)
 }
 
 // Write executes r against fd with the pointer argument ptr.
+//
+// The size of the object ptr is pointing to must match r.Size.
 func (r R) Write(fd int, ptr unsafe.Pointer) error {
 	_, err := ioctlPointer(fd, r.Number(), ptr)
 	return wrapError(err, r.Name, r.Number())
 }
 
-// W specifies a write ioctl: userland is reading, and the kernel is writing.
+// W specifies a write ioctl: the kernel is writing, userland is reading.
 type W struct {
 	Name string
 	Type uint16
@@ -90,12 +93,14 @@ type W struct {
 	Size uint16
 }
 
-// Number returns the associated ioctl number.
+// Number returns the ioctl number associated with w.
 func (w W) Number() uint32 {
 	return number(dirWrite, w.Type, w.Nr, w.Size)
 }
 
 // Read executes w against fd and stores the result in ptr.
+//
+// The size of the object ptr is pointing to must match w.Size.
 func (w W) Read(fd int, ptr unsafe.Pointer) error {
 	_, err := ioctlPointer(fd, w.Number(), ptr)
 	return wrapError(err, w.Name, w.Number())
@@ -117,12 +122,14 @@ type WR struct {
 	Size uint16
 }
 
-// Number returns the associated ioctl number.
+// Number returns the ioctl number associated with w.
 func (wr WR) Number() uint32 {
 	return number(dirRead|dirWrite, wr.Type, wr.Nr, wr.Size)
 }
 
 // Exec executes wr against fd. ptr is the input / output argument.
+//
+// The size of the object ptr is pointing to must match wr.Size.
 func (wr WR) Exec(fd int, ptr unsafe.Pointer) error {
 	_, err := ioctlPointer(fd, wr.Number(), ptr)
 	return wrapError(err, wr.Name, wr.Number())
