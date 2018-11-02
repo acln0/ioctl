@@ -1,5 +1,4 @@
-ioctl
-================
+# ioctl
 
 `import "acln.ro/ioctl"`
 
@@ -8,5 +7,14 @@ against file descriptors.
 
 See the documentation at https://godoc.org/acln.ro/ioctl.
 
-Note: this package is very young and probably doesn't work on any operating
-system besides Linux, and on any architecture besides amd64 or 386.
+For the time being, this package is only tested and used on `linux/amd64`,
+but it should work on other architectures too.
+
+Package `ioctl` is pure Go, but running tests requires a C compiler and
+the appropriate C headers. See `ioctl_test.go` and `ioctl_cgo.go`. To run
+the tests, use the `cgotest` tag: `go test -tags cgotest`.
+
+### License
+
+Package ioctl is distributed under the Apache v2.0 license, which can be
+found in the LICENSE file.
