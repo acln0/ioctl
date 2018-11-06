@@ -16,5 +16,5 @@ the tests, use the `cgotest` tag: `go test -tags cgotest`.
 
 ### License
 
-Package ioctl is distributed under the Apache v2.0 license, which can be
-found in the LICENSE file.
+Package ioctl is distributed under the ISC license. A copy of the license
+can be found in the LICENSE file.
