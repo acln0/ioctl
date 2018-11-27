@@ -115,7 +115,7 @@ type WR struct {
 	Size uint16
 }
 
-// Number returns the ioctl number associated with w.
+// Number returns the ioctl number associated with wr.
 func (wr WR) Number() uint32 {
 	return number(dirRead|dirWrite, wr.Type, wr.Nr, wr.Size)
 }
