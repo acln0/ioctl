@@ -12,12 +12,12 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-// +build cgotest
-
 package ioctl // import "acln.ro/ioctl"
 
 import (
 	"testing"
+
+	"acln.ro/ioctl/internal/cgoioctl"
 )
 
 func TestN(t *testing.T) {
@@ -26,7 +26,7 @@ func TestN(t *testing.T) {
 		{Type: 0xae, Nr: 0x01},
 	}
 	for _, n := range ns {
-		cmp(t, n.Number(), cgoIO(n.Type, n.Nr))
+		cmp(t, n.Number(), cgoioctl.IO(n.Type, n.Nr))
 	}
 }
 
@@ -37,7 +37,7 @@ func TestR(t *testing.T) {
 		{Type: 0xae, Nr: 0x02, Size: 128},
 	}
 	for _, r := range rs {
-		cmp(t, r.Number(), cgoIOR(r.Type, r.Nr, r.Size))
+		cmp(t, r.Number(), cgoioctl.IOR(r.Type, r.Nr, r.Size))
 	}
 }
 
@@ -48,7 +48,7 @@ func TestW(t *testing.T) {
 		{Type: 0xae, Nr: 0x02, Size: 128},
 	}
 	for _, w := range ws {
-		cmp(t, w.Number(), cgoIOW(w.Type, w.Nr, w.Size))
+		cmp(t, w.Number(), cgoioctl.IOW(w.Type, w.Nr, w.Size))
 	}
 }
 
@@ -59,7 +59,7 @@ func TestWR(t *testing.T) {
 		{Type: 0xae, Nr: 0x02, Size: 128},
 	}
 	for _, wr := range wrs {
-		cmp(t, wr.Number(), cgoIOWR(wr.Type, wr.Nr, wr.Size))
+		cmp(t, wr.Number(), cgoioctl.IOWR(wr.Type, wr.Nr, wr.Size))
 	}
 }
 

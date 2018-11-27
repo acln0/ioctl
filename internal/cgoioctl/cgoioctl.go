@@ -12,9 +12,8 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-// +build cgotest
-
-package ioctl // import "acln.ro/ioctl"
+// Package cgoioctl contains wrapper functions around the _IOC C macro.
+package cgoioctl // import "acln.ro/ioctl/internal/cgoioctl"
 
 // #include <linux/types.h>
 // #include <linux/ioctl.h>
@@ -36,24 +35,22 @@ package ioctl // import "acln.ro/ioctl"
 // }
 import "C"
 
-// These functions are used for testing, and live in this file because
-// importing "C" in test files is not allowed. Bypass the more common
-// _IO, _IOR, _IOW, and _IOWR macros, because they use sizeof their final
-// argument, which is difficult to use from Go. Instead, pass the actual
-// size to _IOC directly.
-
-func cgoIO(typ, nr uint16) uint32 {
+// IO wraps the _IO C macro.
+func IO(typ, nr uint16) uint32 {
 	return uint32(C.io(C.__u16(typ), C.__u16(nr)))
 }
 
-func cgoIOR(typ, nr, size uint16) uint32 {
+// IOR wraps the _IOR C macro.
+func IOR(typ, nr, size uint16) uint32 {
 	return uint32(C.ior(C.__u16(typ), C.__u16(nr), C.__u16(size)))
 }
 
-func cgoIOW(typ, nr, size uint16) uint32 {
+// IOW wraps the _IOW C macro.
+func IOW(typ, nr, size uint16) uint32 {
 	return uint32(C.iow(C.__u16(typ), C.__u16(nr), C.__u16(size)))
 }
 
-func cgoIOWR(typ, nr, size uint16) uint32 {
+// IOWR wraps the _IOWR C macro.
+func IOWR(typ, nr, size uint16) uint32 {
 	return uint32(C.iowr(C.__u16(typ), C.__u16(nr), C.__u16(size)))
 }

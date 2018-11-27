@@ -64,7 +64,7 @@ func (n N) ExecInt(fd int, val uintptr) (int, error) {
 	return res, wrapError(err, n.Name, n.Number())
 }
 
-// R specifies a read ioctl: the kernel is reading, userland is writing.
+// R specifies a read ioctl: information is passed from kernel to userspace.
 type R struct {
 	Name string
 	Type uint16
@@ -77,15 +77,16 @@ func (r R) Number() uint32 {
 	return number(dirRead, r.Type, r.Nr, r.Size)
 }
 
-// Write executes r against fd with the pointer argument ptr.
+// Read executes r against fd with the pointer argument ptr.
 //
 // The size of the object ptr is pointing to must match r.Size.
-func (r R) Write(fd int, ptr unsafe.Pointer) error {
+func (r R) Read(fd int, ptr unsafe.Pointer) error {
 	_, err := ioctlPointer(fd, r.Number(), ptr)
 	return wrapError(err, r.Name, r.Number())
 }
 
-// W specifies a write ioctl: the kernel is writing, userland is reading.
+// W specifies a write ioctl: information is passed from userspace into
+// the kernel.
 type W struct {
 	Name string
 	Type uint16
@@ -98,20 +99,12 @@ func (w W) Number() uint32 {
 	return number(dirWrite, w.Type, w.Nr, w.Size)
 }
 
-// Read executes w against fd and stores the result in ptr.
+// Write executes w against fd with the pointer argument ptr.
 //
 // The size of the object ptr is pointing to must match w.Size.
-func (w W) Read(fd int, ptr unsafe.Pointer) error {
+func (w W) Write(fd int, ptr unsafe.Pointer) error {
 	_, err := ioctlPointer(fd, w.Number(), ptr)
 	return wrapError(err, w.Name, w.Number())
-}
-
-// ReadInt is a convenience wrapper around Read, which executes w against
-// fd and returns the integer result.
-func (w W) ReadInt(fd int) (uintptr, error) {
-	var res uintptr
-	err := w.Read(fd, unsafe.Pointer(&res))
-	return res, err
 }
 
 // WR specifies a bidirectional ioctl.
